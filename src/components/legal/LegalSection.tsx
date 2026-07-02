@@ -7,9 +7,10 @@ type Props = {
 
 export function LegalSection({ title, children }: Props) {
   return (
-    <section>
-      <h2 className="text-2xl font-bold mb-3">{title}</h2>
-      <div className="space-y-3 text-muted-foreground leading-relaxed">
+    <section className="space-y-4">
+      <h2 className="text-2xl font-bold">{title}</h2>
+
+      <div className="space-y-3 leading-relaxed text-muted-foreground">
         {children}
       </div>
     </section>

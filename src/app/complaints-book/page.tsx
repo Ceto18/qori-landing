@@ -1,36 +1,53 @@
-import { LegalContactBox } from "@/components/legal/LegalContactBox";
+import { ComplaintsBookForm } from "@/components/legal/ComplaintsBookForm";
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
 import { LegalSection } from "@/components/legal/LegalSection";
+import { BUSINESS_INFO } from "@/constants/business";
 
 export default function ComplaintsBookPage() {
   return (
     <LegalPageLayout
       title="Libro de reclamaciones"
-      description="Canal para registrar reclamos o quejas relacionados con el servicio."
+      description="Canal oficial para registrar reclamos o quejas relacionados con productos o servicios de Qori ID."
     >
-      <LegalSection title="Registro de reclamo o queja">
+      <LegalSection title="Formato de hoja de reclamación">
         <p>
-          Para registrar un reclamo o queja, el usuario puede enviar un correo
-          indicando nombres completos, documento de identidad, teléfono, correo,
-          detalle del reclamo y pedido concreto.
+          Este formulario permite registrar reclamos o quejas relacionados con
+          productos o servicios adquiridos en Qori ID.
+        </p>
+
+        <p>
+          Al enviar el formulario, se registrará la información para la atención
+          correspondiente de tu solicitud.
         </p>
       </LegalSection>
 
-      <LegalSection title="Información requerida">
-        <p>
-          El mensaje debe incluir el producto o servicio contratado, fecha de
-          compra, monto pagado y una descripción clara de los hechos.
-        </p>
+      <LegalSection title="1. Datos del proveedor">
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
+          <p>
+            <strong>Nombre comercial:</strong> {BUSINESS_INFO.brandName}
+          </p>
+          <p>
+            <strong>Razón social:</strong> {BUSINESS_INFO.legalName}
+          </p>
+          <p>
+            <strong>RUC:</strong> {BUSINESS_INFO.ruc}
+          </p>
+          <p>
+            <strong>Domicilio:</strong> {BUSINESS_INFO.address}
+          </p>
+          <p>
+            <strong>Correo electrónico:</strong> {BUSINESS_INFO.email}
+          </p>
+          <p>
+            <strong>Teléfono / WhatsApp:</strong> {BUSINESS_INFO.whatsapp}
+          </p>
+          <p>
+            <strong>Página web:</strong> {BUSINESS_INFO.website}
+          </p>
+        </div>
       </LegalSection>
 
-      <LegalSection title="Atención">
-        <p>
-          Qori ID revisará la solicitud y responderá al correo proporcionado por
-          el usuario dentro de un plazo razonable.
-        </p>
-      </LegalSection>
-
-      <LegalContactBox />
+      <ComplaintsBookForm />
     </LegalPageLayout>
   );
 }

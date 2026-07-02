@@ -12,28 +12,42 @@ type Props = {
 
 export function LegalPageLayout({ title, description, children }: Props) {
   return (
-    <main className="min-h-screen bg-background text-foreground px-4 py-16 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-background px-4 py-16 text-foreground sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl">
         <NextLink
           href={ROUTES.home}
-          className="inline-flex mb-10 text-primary hover:underline"
+          className="mb-10 inline-flex text-primary hover:underline"
         >
           ← Volver al inicio
         </NextLink>
 
         <header className="mb-10">
-          <p className="text-sm text-primary font-semibold mb-3">
+          <p className="mb-3 text-sm font-semibold text-primary">
             {BUSINESS_INFO.brandName}
           </p>
 
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">{title}</h1>
+          <h1 className="mb-4 text-4xl font-bold sm:text-5xl">
+            {title}
+          </h1>
 
-          <p className="text-muted-foreground text-lg">{description}</p>
+          <p className="text-lg text-muted-foreground">
+            {description}
+          </p>
         </header>
 
-        <div className="glass-dark rounded-2xl border border-primary/20 p-6 sm:p-8 space-y-8">
+        <section className="glass-dark space-y-8 rounded-2xl border border-primary/20 p-6 sm:p-8">
           {children}
-        </div>
+        </section>
+
+        <footer className="mt-8 text-sm text-muted-foreground">
+          <p>
+            {BUSINESS_INFO.brandName} — {BUSINESS_INFO.legalName}
+          </p>
+
+          <p>
+            RUC: {BUSINESS_INFO.ruc}
+          </p>
+        </footer>
       </div>
     </main>
   );
