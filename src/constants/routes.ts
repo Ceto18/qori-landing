@@ -1,6 +1,6 @@
 export const ROUTES = {
   home: "/",
-  terms: "/term-and-conditions",
+  terms: "/terms-and-conditions",
   privacy: "/privacy-policy",
   refunds: "/refund-policy",
   complaintsBook: "/complaints-book",
