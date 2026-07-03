@@ -11,7 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { CardFormValues } from "../../types";
+import { CardFormValues } from "../types";
 
 interface Props {
   data: CardFormValues;

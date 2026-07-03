@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { BadgeCheck, FileText, Link2, MapPin } from "lucide-react";
 
-import { CardFormValues } from "../../types";
+import { CardFormValues } from "../types";
 
 interface Props {
     data: CardFormValues;
