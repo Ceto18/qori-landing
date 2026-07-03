@@ -6,7 +6,7 @@ import type { PublicCardResponse } from "@/types/publicCard";
 export const publicCardService = {
   getPublicCard: async (organizationSlug: string, cardSlug: string) => {
     const response = await api.get<PublicCardResponse>(
-      `/public/info/${organizationSlug}/${cardSlug}`
+      `/public/cards/${organizationSlug}/${cardSlug}`
     );
 
     return response.data;
