@@ -10,11 +10,19 @@ export function CheckoutLoading() {
                     <Skeleton.Input active size="small" className="!w-32" />
 
                     <div className="mt-5">
-                        <Skeleton.Input active size="large" className="!h-12 !w-full max-w-xl" />
+                        <Skeleton.Input
+                            active
+                            size="large"
+                            className="!h-12 !w-full max-w-xl"
+                        />
                     </div>
 
                     <div className="mt-4">
-                        <Skeleton.Input active size="default" className="!w-full max-w-2xl" />
+                        <Skeleton.Input
+                            active
+                            size="default"
+                            className="!w-full max-w-2xl"
+                        />
                     </div>
                 </div>
 
