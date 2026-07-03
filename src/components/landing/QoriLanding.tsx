@@ -5,7 +5,6 @@ import { LandingNavbar } from "./LandingNavbar";
 
 import { BenefitsSection } from "./sections/BenefitsSection";
 import { BusinessInfoSection } from "./sections/BusinessInfoSection";
-import { CheckoutSection } from "./sections/CheckoutSection";
 import { FinalCTASection } from "./sections/FinalCTASection";
 import { HeroSection } from "./sections/HeroSection";
 import { HowItWorksSection } from "./sections/HowItWorksSection";
@@ -23,7 +22,6 @@ export function QoriLanding() {
         <ProblemSection />
         <SolutionSection />
         <PlansSection />
-        <CheckoutSection />
         <HowItWorksSection />
         <BenefitsSection />
         <BusinessInfoSection />
