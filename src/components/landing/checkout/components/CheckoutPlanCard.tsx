@@ -1,18 +1,23 @@
-"use client";
-
 import { CreditCard } from "lucide-react";
 
 import type { PublicPlan } from "@/types/plan";
-
 import type { CheckoutFormState } from "./CheckoutForm";
 
 type Props = {
   selectedPlan: PublicPlan;
   form: CheckoutFormState;
   onPay: () => void;
+  isPaying?: boolean;
+  isCulqiReady?: boolean;
 };
 
-export function CheckoutPlanCard({ selectedPlan, form, onPay }: Props) {
+export function CheckoutPlanCard({
+  selectedPlan,
+  form,
+  onPay,
+  isPaying = false,
+  isCulqiReady = true,
+}: Props) {
   const formattedPrice = `S/ ${Number(selectedPlan.price).toFixed(2)}`;
 
   return (
@@ -41,10 +46,15 @@ export function CheckoutPlanCard({ selectedPlan, form, onPay }: Props) {
       <button
         type="button"
         onClick={onPay}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/50"
+        disabled={isPaying || !isCulqiReady}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:shadow-none"
       >
         <CreditCard className="h-5 w-5" />
-        Pagar con tarjeta
+        {isPaying
+          ? "Procesando pago..."
+          : isCulqiReady
+            ? "Pagar con tarjeta"
+            : "Cargando pasarela..."}
       </button>
 
       <p className="mt-4 text-center text-xs text-muted-foreground">

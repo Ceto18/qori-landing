@@ -33,7 +33,7 @@ export function LandingNavbar() {
           </a>
 
           <a
-            href="#planes"
+            href="https://admin.qoriid.com/signup"
             className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:shadow-lg hover:shadow-primary/50 transition-all"
           >
             Crear cuenta
