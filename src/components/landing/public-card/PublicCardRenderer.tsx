@@ -62,6 +62,7 @@ interface TemplateProps {
     data: PublicTemplateData;
     profilePreview: string;
     bannerPreview: string;
+    isPublicView?: boolean;
 }
 
 const templateMap: Record<string, ComponentType<TemplateProps>> = {
@@ -121,14 +122,15 @@ export default function PublicCardRenderer({ card }: Props) {
     const data = toTemplateData(card);
 
     return (
-        <main className="min-h-screen bg-gray-100 px-4 py-8">
-            <div className="mx-auto w-full max-w-[420px]">
+        <main className="min-h-screen bg-gray-100 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-10">
+            <section className="mx-auto flex w-full max-w-[520px] justify-center">
                 <SelectedTemplate
                     data={data}
                     profilePreview={card.photo_perfil_url ?? ""}
                     bannerPreview={card.photo_banner_url ?? ""}
+                    isPublicView
                 />
-            </div>
+            </section>
         </main>
     );
 }
