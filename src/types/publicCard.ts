@@ -1,32 +1,34 @@
 // src/types/publicCard.ts
 
-export type PublicCardQuality = {
-  uuid?: string;
-  name: string;
-};
+export type PublicCardQuality =
+  | string
+  | {
+      uuid?: string;
+      name: string;
+    };
 
 export type PublicCardDocument = {
-  uuid: string;
+  uuid?: string;
   name: string;
   document_url: string;
 };
 
 export type PublicCardNetworkType = {
-  uuid: string;
+  uuid?: string;
   name: string;
   type?: string;
   icon_url: string | null;
 };
 
 export type PublicCardNetwork = {
-  uuid: string;
+  uuid?: string;
   value: string;
-  label: string;
+  label?: string;
   type?: PublicCardNetworkType;
 };
 
 export type PublicCard = {
-  uuid: string;
+  uuid?: string;
   slug: string;
 
   first_name?: string | null;

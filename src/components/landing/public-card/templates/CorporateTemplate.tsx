@@ -12,18 +12,19 @@ import {
     WalletCards,
 } from "lucide-react";
 
-import { CardFormValues } from "../types";
+import type { CardFormValues, CardDocument, CardNetwork, CardQuality } from "../types";
 
 interface Props {
     data: CardFormValues;
-    profilePreview: string;
-    bannerPreview: string;
+    profilePreview?: string;
+    bannerPreview?: string;
+    isPublicView?: boolean;
 }
 
 export default function CorporateTemplate({
     data,
-    profilePreview,
-    bannerPreview,
+    profilePreview = "",
+    bannerPreview = "",
 }: Props) {
     const primaryColor = data.primary_color || "#2563eb";
     const secondaryColor = data.secondary_color || "#0f172a";
@@ -36,17 +37,23 @@ export default function CorporateTemplate({
     const networks = data.networks ?? [];
 
     const filledQualities = qualities.filter((quality) =>
-        quality.name?.trim()
+        getQualityName(quality).trim()
     );
 
     const filledDocuments = documents.filter(Boolean);
 
-    const filledNetworks = networks.filter(
-        (network) =>
-            network.uuid?.trim() ||
-            network.name?.trim() ||
-            network.value?.trim()
-    );
+    const filledNetworks = networks.filter((network) => {
+        const name = getNetworkName(network);
+        const value = getNetworkValue(network);
+        const icon = getNetworkIcon(network);
+
+        return (
+            network?.uuid?.trim?.() ||
+            name.trim() ||
+            value.trim() ||
+            icon.trim()
+        );
+    });
 
     return (
         <div
@@ -68,7 +75,7 @@ export default function CorporateTemplate({
 
                 <div className="relative">
                     <div
-                        className="relative h-64 overflow-hidden bg-cover bg-center sm:h-72"
+                        className="relative h-44 overflow-hidden bg-cover bg-center"
                         style={{
                             backgroundColor: secondaryColor,
                             backgroundImage: bannerImage
@@ -100,7 +107,7 @@ export default function CorporateTemplate({
                     <div className="absolute left-1/2 top-full z-10 -translate-x-1/2 -translate-y-1/2">
                         <div className="rounded-[2rem] border border-white/10 bg-slate-950 p-1.5 shadow-[0_18px_45px_rgba(0,0,0,0.45)]">
                             <div
-                                className="flex h-36 w-36 shrink-0 items-center justify-center overflow-hidden rounded-[1.65rem] border-[3px] bg-white/10 text-4xl font-bold text-white ring-1 ring-white/10 sm:h-40 sm:w-40"
+                                className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-[1.65rem] border-[3px] bg-white/10 text-3xl font-bold text-white ring-1 ring-white/10"
                                 style={{ borderColor: primaryColor }}
                             >
                                 {profileImage ? (
@@ -116,7 +123,7 @@ export default function CorporateTemplate({
                                             background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
                                         }}
                                     >
-                                        <UserRound size={48} />
+                                        <UserRound size={42} />
                                     </span>
                                 )}
                             </div>
@@ -124,28 +131,28 @@ export default function CorporateTemplate({
                     </div>
                 </div>
 
-                <div className="relative px-5 pb-8 pt-24 sm:px-8 sm:pt-28 lg:px-10">
-                    <div className="w-full">
+                <div className="relative px-5 pb-5 pt-16">
+                    <div className="pr-1">
                         <div className="text-center">
-                            <h3 className="break-words text-3xl font-extrabold leading-tight text-white sm:text-4xl">
+                            <h3 className="break-words text-[22px] font-extrabold leading-tight text-white">
                                 {data.full_name || "Nombre completo"}
                             </h3>
 
                             <p
-                                className="mt-2 break-words text-base font-bold sm:text-lg"
+                                className="mt-1 break-words text-sm font-bold"
                                 style={{ color: primaryColor }}
                             >
                                 {data.position || "Cargo"}
                             </p>
 
                             {data.profession && (
-                                <p className="mt-1 break-words text-sm font-medium text-slate-400">
+                                <p className="mt-1 break-words text-xs font-medium text-slate-400">
                                     {data.profession}
                                 </p>
                             )}
                         </div>
 
-                        <div className="mt-6 rounded-[1.6rem] border border-white/10 bg-white/[0.06] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md sm:p-6">
+                        <div className="mt-5 rounded-[1.6rem] border border-white/10 bg-white/[0.06] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md">
                             <div className="flex items-center gap-3">
                                 <div
                                     className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
@@ -161,42 +168,26 @@ export default function CorporateTemplate({
                                         Empresa
                                     </p>
 
-                                    <p className="break-words text-sm font-bold text-white sm:text-base">
+                                    <p className="truncate text-sm font-bold text-white">
                                         {data.institution || "Nombre de la empresa"}
                                     </p>
                                 </div>
                             </div>
 
                             {data.description ? (
-                                <div className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-                                    <p className="break-words text-sm leading-7 text-slate-300 sm:text-base">
+                                <div className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-3 py-3">
+                                    <p className="break-words text-sm leading-6 text-slate-300">
                                         {data.description}
                                     </p>
                                 </div>
                             ) : (
                                 <p className="mt-4 rounded-2xl border border-dashed border-white/10 bg-black/10 px-3 py-3 text-sm leading-6 text-slate-400">
-                                    Agrega una descripción corporativa para presentar mejor tu perfil profesional o tu empresa.
+                                    Agrega una descripción corporativa para
+                                    presentar mejor tu perfil profesional o tu
+                                    empresa.
                                 </p>
                             )}
                         </div>
-
-                        {filledNetworks.length > 0 && (
-                            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                {filledNetworks.slice(0, 2).map((network, index) => (
-                                    <QuickNetworkAction
-                                        key={`${network.uuid}-${index}`}
-                                        name={network.name}
-                                        icon={network.icon_url}
-                                        value={network.value}
-                                        color={
-                                            index === 0
-                                                ? primaryColor
-                                                : secondaryColor
-                                        }
-                                    />
-                                ))}
-                            </div>
-                        )}
 
                         <div className="mt-5 space-y-3">
                             <InfoItem
@@ -221,10 +212,10 @@ export default function CorporateTemplate({
                                     <div className="flex flex-wrap gap-2">
                                         {filledQualities.map((quality, index) => (
                                             <span
-                                                key={`${quality.name}-${index}`}
+                                                key={`${getQualityName(quality)}-${index}`}
                                                 className="max-w-full break-words rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-slate-200 shadow-sm"
                                             >
-                                                {quality.name}
+                                                {getQualityName(quality)}
                                             </span>
                                         ))}
                                     </div>
@@ -242,10 +233,11 @@ export default function CorporateTemplate({
                                 <div className="space-y-3">
                                     {filledNetworks.map((network, index) => (
                                         <NetworkItem
-                                            key={`${network.uuid}-${index}`}
-                                            name={network.name}
-                                            icon={network.icon_url}
-                                            value={network.value}
+                                            key={`${network.uuid || getNetworkName(network)}-${index}`}
+                                            name={getNetworkName(network)}
+                                            icon={getNetworkIcon(network)}
+                                            value={getNetworkValue(network)}
+                                            href={getNetworkHref(network)}
                                         />
                                     ))}
                                 </div>
@@ -261,31 +253,12 @@ export default function CorporateTemplate({
 
                                 <div className="space-y-3">
                                     {filledDocuments.map((document, index) => (
-                                        <div
+                                        <DocumentItem
                                             key={index}
-                                            className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md"
-                                        >
-                                            <div
-                                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
-                                                style={{
-                                                    backgroundColor: primaryColor,
-                                                }}
-                                            >
-                                                <FileText size={17} />
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-xs font-medium text-slate-400">
-                                                    Documento
-                                                </p>
-
-                                                <p className="truncate text-sm font-semibold text-slate-100">
-                                                    {document instanceof File
-                                                        ? document.name
-                                                        : `Documento ${index + 1}`}
-                                                </p>
-                                            </div>
-                                        </div>
+                                            document={document}
+                                            index={index}
+                                            color={primaryColor}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -342,31 +315,6 @@ function SectionBox({
     );
 }
 
-function QuickNetworkAction({
-    name,
-    icon,
-    value,
-    color,
-}: {
-    name?: string;
-    icon?: string | null;
-    value?: string;
-    color: string;
-}) {
-    return (
-        <button
-            type="button"
-            disabled={!value}
-            className="flex min-w-0 items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ backgroundColor: color }}
-        >
-            <NetworkIcon icon={icon} name={name} compact />
-
-            <span className="min-w-0 truncate">{name || "Red"}</span>
-        </button>
-    );
-}
-
 function InfoItem({
     icon,
     label,
@@ -379,7 +327,7 @@ function InfoItem({
     if (!value) return null;
 
     return (
-        <div className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md">
+        <div className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-slate-300 shadow-sm">
                 {icon}
             </div>
@@ -399,18 +347,20 @@ function NetworkItem({
     name,
     icon,
     value,
+    href,
 }: {
     name?: string;
     icon?: string | null;
     value?: string;
+    href?: string;
 }) {
     if (!name && !value) return null;
 
-    return (
-        <div className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md">
+    const content = (
+        <>
             <NetworkIcon icon={icon} name={name} />
 
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 text-left">
                 <p className="truncate text-xs font-medium text-slate-400">
                     {name || "Red social"}
                 </p>
@@ -421,6 +371,80 @@ function NetworkItem({
                     </p>
                 )}
             </div>
+        </>
+    );
+
+    if (href && href !== "#") {
+        return (
+            <a
+                href={href}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md"
+            >
+                {content}
+            </a>
+        );
+    }
+
+    return (
+        <div className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md">
+            {content}
+        </div>
+    );
+}
+
+function DocumentItem({
+    document,
+    index,
+    color,
+}: {
+    document: CardDocument;
+    index: number;
+    color: string;
+}) {
+    if (!document) return null;
+
+    const documentName = getDocumentName(document, index);
+    const documentUrl = getDocumentUrl(document);
+
+    const content = (
+        <>
+            <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
+                style={{ backgroundColor: color }}
+            >
+                <FileText size={17} />
+            </div>
+
+            <div className="min-w-0 flex-1 text-left">
+                <p className="text-xs font-medium text-slate-400">
+                    Documento
+                </p>
+
+                <p className="truncate text-sm font-semibold text-slate-100">
+                    {documentName}
+                </p>
+            </div>
+        </>
+    );
+
+    if (documentUrl) {
+        return (
+            <a
+                href={documentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md"
+            >
+                {content}
+            </a>
+        );
+    }
+
+    return (
+        <div className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-white/[0.09] hover:shadow-md">
+            {content}
         </div>
     );
 }
@@ -458,4 +482,133 @@ function NetworkIcon({
             />
         </span>
     );
+}
+
+function getQualityName(quality: CardQuality) {
+    if (!quality) return "";
+
+    if (typeof quality === "string") return quality;
+
+    return quality.name || "";
+}
+
+function getNetworkName(network: CardNetwork) {
+    return (
+        network.name ||
+        network.type?.name ||
+        network.label ||
+        network.value ||
+        ""
+    );
+}
+
+function getNetworkValue(network: CardNetwork) {
+    return network.value || "";
+}
+
+function getNetworkIcon(network: CardNetwork) {
+    return (
+        network.icon_url ||
+        network.icon ||
+        network.type?.icon_url ||
+        ""
+    );
+}
+
+function getNetworkHref(network: CardNetwork) {
+    const value = getNetworkValue(network);
+    const type = network.type?.type?.toLowerCase();
+    const name = getNetworkName(network).toLowerCase();
+
+    if (!value) return "#";
+
+    if (type === "email" || name.includes("email") || name.includes("correo")) {
+        return `mailto:${value}`;
+    }
+
+    if (type === "phone" || type === "tel") {
+        const phone = value.replace(/\D/g, "");
+
+        if (name.includes("whatsapp")) {
+            return `https://wa.me/${phone}`;
+        }
+
+        return `tel:${phone}`;
+    }
+
+    if (name.includes("whatsapp")) {
+        const phone = value.replace(/\D/g, "");
+        return `https://wa.me/${phone}`;
+    }
+
+    if (value.startsWith("http://") || value.startsWith("https://")) {
+        return value;
+    }
+
+    return value;
+}
+
+function getDocumentName(document: CardDocument, index: number) {
+    if (document instanceof File) {
+        return document.name;
+    }
+
+    if (typeof document === "string") {
+        return getNameFromPath(document) || `Documento ${index + 1}`;
+    }
+
+    if (document && typeof document === "object") {
+        return (
+            document.name ||
+            document.file_name ||
+            document.filename ||
+            document.document_name ||
+            document.original_name ||
+            document.originalName ||
+            document.title ||
+            document.document?.name ||
+            document.document?.file_name ||
+            getNameFromPath(document.url) ||
+            getNameFromPath(document.file_url) ||
+            getNameFromPath(document.document_url) ||
+            getNameFromPath(document.path) ||
+            getNameFromPath(document.document?.url) ||
+            getNameFromPath(document.document?.path) ||
+            `Documento ${index + 1}`
+        );
+    }
+
+    return `Documento ${index + 1}`;
+}
+
+function getDocumentUrl(document: CardDocument) {
+    if (!document || document instanceof File) return "";
+
+    if (typeof document === "string") {
+        return document;
+    }
+
+    return (
+        document.url ||
+        document.file_url ||
+        document.document_url ||
+        document.path ||
+        document.document?.url ||
+        document.document?.document_url ||
+        document.document?.path ||
+        ""
+    );
+}
+
+function getNameFromPath(path?: string) {
+    if (!path) return "";
+
+    try {
+        const cleanPath = path.split("?")[0];
+        const name = cleanPath.split("/").pop();
+
+        return name ? decodeURIComponent(name) : "";
+    } catch {
+        return "";
+    }
 }

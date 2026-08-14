@@ -5,44 +5,125 @@ import { BadgeCheck, FileText, Link2, MapPin } from "lucide-react";
 
 import { CardFormValues } from "../types";
 
+type PublicCardLike = CardFormValues & Record<string, any>;
+
 interface Props {
-    data: CardFormValues;
-    profilePreview: string;
-    bannerPreview: string;
+    data: PublicCardLike;
+    profilePreview?: string;
+    bannerPreview?: string;
 }
+
+type DocumentLike =
+    | File
+    | string
+    | {
+          name?: string;
+          file_name?: string;
+          filename?: string;
+          document_name?: string;
+          original_name?: string;
+          originalName?: string;
+          title?: string;
+          url?: string;
+          file_url?: string;
+          document_url?: string;
+          path?: string;
+          document?: {
+              name?: string;
+              file_name?: string;
+              url?: string;
+              path?: string;
+              document_url?: string;
+          };
+      }
+    | null;
+
+type QualityLike =
+    | string
+    | {
+          name?: string;
+          title?: string;
+          value?: string;
+          quality?: string;
+          description?: string;
+      }
+    | null;
+
+type NetworkLike = {
+    uuid?: string;
+    name?: string;
+    label?: string;
+    value?: string;
+    url?: string;
+    link?: string;
+    icon_url?: string | null;
+    icon?: string | null;
+    image?: string | null;
+    type?: {
+        name?: string;
+        type?: string;
+        icon_url?: string | null;
+        icon?: string | null;
+    };
+    social_network?: {
+        name?: string;
+        icon_url?: string | null;
+        icon?: string | null;
+    };
+};
 
 export default function ClassicTemplate({
     data,
-    profilePreview,
-    bannerPreview,
+    profilePreview = "",
+    bannerPreview = "",
 }: Props) {
-    const profileImage = profilePreview || data.photo_perfil_url || "";
-    const bannerImage = bannerPreview || data.photo_banner_url || "";
+    const primaryColor = data.primary_color || "#2563eb";
 
-    const qualities = data.qualities ?? [];
-    const documents = data.documents ?? [];
-    const networks = data.networks ?? [];
+    const profileImage =
+        profilePreview ||
+        data.photo_perfil_url ||
+        data.photo_profile_url ||
+        data.profile_photo_url ||
+        data.profile_image_url ||
+        data.photo_perfil ||
+        "";
+
+    const bannerImage =
+        bannerPreview ||
+        data.photo_banner_url ||
+        data.banner_photo_url ||
+        data.banner_image_url ||
+        data.photo_banner ||
+        "";
+
+    const qualities = getQualities(data);
+    const documents = getDocuments(data);
+    const networks = getNetworks(data);
 
     const filledQualities = qualities.filter((quality) =>
-        quality.name?.trim()
+        getQualityName(quality).trim()
     );
 
     const filledDocuments = documents.filter(Boolean);
 
-    const filledNetworks = networks.filter(
-        (network) =>
-            network.uuid?.trim() ||
-            network.value?.trim() ||
-            network.name?.trim()
-    );
+    const filledNetworks = networks.filter((network) => {
+        const name = getNetworkName(network);
+        const value = getNetworkValue(network);
+        const icon = getNetworkIcon(network);
 
-    const primaryColor = data.primary_color || "#2563eb";
+        return (
+            network?.uuid?.trim?.() ||
+            name.trim() ||
+            value.trim() ||
+            icon.trim()
+        );
+    });
 
     return (
         <div className="mx-auto w-full max-w-[520px] overflow-hidden rounded-[2rem] border border-gray-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-white/[0.08] dark:bg-gray-950">
             <div className="relative">
                 <div
-                    className="relative h-64 overflow-hidden bg-cover bg-center"
+                    className="relative h-36 overflow-hidden bg-cover bg-center"
                     style={{
                         backgroundColor: primaryColor,
                         backgroundImage: bannerImage
@@ -69,7 +150,7 @@ export default function ClassicTemplate({
                 <div className="absolute left-1/2 top-full z-10 -translate-x-1/2 -translate-y-1/2">
                     <div className="rounded-full bg-white p-1.5 shadow-[0_12px_35px_rgba(15,23,42,0.25)] dark:bg-gray-950">
                         <div
-                            className="flex h-36 w-36 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] bg-gray-100 text-4xl font-bold text-white dark:bg-gray-800"
+                            className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] bg-gray-100 text-3xl font-bold text-white dark:bg-gray-800"
                             style={{ borderColor: primaryColor }}
                         >
                             {profileImage ? (
@@ -83,7 +164,8 @@ export default function ClassicTemplate({
                                     className="flex h-full w-full items-center justify-center"
                                     style={{ backgroundColor: primaryColor }}
                                 >
-                                    {data.full_name?.charAt(0)?.toUpperCase() || "?"}
+                                    {data.full_name?.charAt(0)?.toUpperCase() ||
+                                        "?"}
                                 </span>
                             )}
                         </div>
@@ -91,52 +173,84 @@ export default function ClassicTemplate({
                 </div>
             </div>
 
-            <div className="px-5 pb-8 pt-24 sm:px-8 lg:px-10">
-                <div className="w-full">
+            <div className="px-5 pb-5 pt-16">
+                <div className="pr-1">
                     <div className="text-center">
-                        <h3 className="break-words text-3xl font-extrabold leading-tight text-gray-950 dark:text-white">
+                        <h3 className="break-words text-[22px] font-extrabold leading-tight text-gray-950 dark:text-white">
                             {data.full_name || "Nombre completo"}
                         </h3>
 
                         <p
-                            className="mt-1 break-words text-base font-semibold"
+                            className="mt-1 break-words text-sm font-semibold"
                             style={{ color: primaryColor }}
                         >
                             {data.position || "Cargo"}
                         </p>
 
                         {(data.institution || data.profession) && (
-                            <div className="mt-3 flex flex-col items-center gap-1">
+                            <div className="mt-3 flex flex-col items-center gap-1.5">
                                 {data.institution && (
-                                    <p className="max-w-full break-words rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">
+                                    <p className="max-w-full break-words text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">
                                         {data.institution}
                                     </p>
                                 )}
 
                                 {data.profession && (
-                                    <p className="max-w-full break-words text-xs font-medium text-gray-400">
+                                    <p className="max-w-full break-words rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">
                                         {data.profession}
                                     </p>
                                 )}
+                            </div>
+                        )}
+
+                        {filledNetworks.length > 0 && (
+                            <div className="mt-4 flex justify-center">
+                                <div className="flex max-w-full flex-wrap justify-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 py-2 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.04]">
+                                    {filledNetworks.map((network, index) => (
+                                        <a
+                                            key={`network-${
+                                                network.uuid ||
+                                                getNetworkName(network) ||
+                                                index
+                                            }`}
+                                            href={getNetworkHref(network)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title={
+                                                getNetworkName(network) ||
+                                                "Red social"
+                                            }
+                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-gray-600 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.08] dark:text-white"
+                                        >
+                                            <NetworkMiniIcon
+                                                icon={getNetworkIcon(network)}
+                                                name={getNetworkName(network)}
+                                                color={primaryColor}
+                                            />
+                                        </a>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
 
                     {data.description && (
                         <div className="mt-5 rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white px-4 py-4 shadow-sm dark:border-white/[0.06] dark:from-white/[0.04] dark:to-white/[0.02]">
-                            <p className="break-words text-center text-base leading-7 text-gray-600 dark:text-gray-300">
+                            <p className="break-words text-center text-sm leading-6 text-gray-600 dark:text-gray-300">
                                 {data.description}
                             </p>
                         </div>
                     )}
 
-                    <div className="mt-5 space-y-2">
-                        <Info
-                            icon={<MapPin size={16} />}
-                            value={data.ubication}
-                            color={primaryColor}
-                        />
-                    </div>
+                    {data.ubication && (
+                        <div className="mt-5 space-y-2">
+                            <Info
+                                icon={<MapPin size={16} />}
+                                value={data.ubication}
+                                color={primaryColor}
+                            />
+                        </div>
+                    )}
 
                     {filledQualities.length > 0 && (
                         <SectionTitle
@@ -147,10 +261,12 @@ export default function ClassicTemplate({
                                 <div className="flex flex-wrap gap-2">
                                     {filledQualities.map((quality, index) => (
                                         <span
-                                            key={`${quality.name}-${index}`}
+                                            key={`${getQualityName(
+                                                quality
+                                            )}-${index}`}
                                             className="max-w-full break-words rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-gray-300"
                                         >
-                                            {quality.name}
+                                            {getQualityName(quality)}
                                         </span>
                                     ))}
                                 </div>
@@ -158,45 +274,19 @@ export default function ClassicTemplate({
                         </SectionTitle>
                     )}
 
-                    {filledNetworks.length > 0 && (
-                        <SectionTitle icon={<Link2 size={14} />} title="Redes sociales">
-                            <div className="space-y-2">
-                                {filledNetworks.map((network, index) => (
-                                    <NetworkInfo
-                                        key={`${network.uuid}-${index}`}
-                                        name={network.name}
-                                        icon={network.icon_url}
-                                        value={network.value}
-                                        color={primaryColor}
-                                    />
-                                ))}
-                            </div>
-                        </SectionTitle>
-                    )}
-
                     {filledDocuments.length > 0 && (
-                        <SectionTitle icon={<FileText size={14} />} title="Documentos">
+                        <SectionTitle
+                            icon={<FileText size={14} />}
+                            title="Documentos"
+                        >
                             <div className="space-y-2">
                                 {filledDocuments.map((document, index) => (
-                                    <div
+                                    <DocumentInfo
                                         key={index}
-                                        className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-600 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md dark:border-white/[0.06] dark:bg-white/[0.04] dark:text-gray-300 dark:hover:bg-white/[0.07]"
-                                    >
-                                        <span
-                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
-                                            style={{
-                                                backgroundColor: primaryColor,
-                                            }}
-                                        >
-                                            <FileText size={16} />
-                                        </span>
-
-                                        <span className="min-w-0 flex-1 truncate font-medium">
-                                            {document instanceof File
-                                                ? document.name
-                                                : `Documento ${index + 1}`}
-                                        </span>
-                                    </div>
+                                        document={document}
+                                        index={index}
+                                        color={primaryColor}
+                                    />
                                 ))}
                             </div>
                         </SectionTitle>
@@ -272,46 +362,63 @@ function Info({
                 {icon}
             </span>
 
-            <span className="min-w-0 flex-1 truncate font-medium">
+            <span className="min-w-0 flex-1 break-words font-medium">
                 {value}
             </span>
         </div>
     );
 }
 
-function NetworkInfo({
-    name,
-    icon,
-    value,
+function DocumentInfo({
+    document,
+    index,
     color,
 }: {
-    name?: string;
-    icon?: string | null;
-    value?: string;
+    document: DocumentLike;
+    index: number;
     color: string;
 }) {
-    if (!name && !value) return null;
+    if (!document) return null;
+
+    const documentName = getDocumentName(document, index);
+    const documentUrl = getDocumentUrl(document);
+
+    const content = (
+        <>
+            <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
+                style={{ backgroundColor: color }}
+            >
+                <FileText size={16} />
+            </span>
+
+            <span className="min-w-0 flex-1 truncate font-medium">
+                {documentName}
+            </span>
+        </>
+    );
+
+    if (documentUrl) {
+        return (
+            <a
+                href={documentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-600 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md dark:border-white/[0.06] dark:bg-white/[0.04] dark:text-gray-300 dark:hover:bg-white/[0.07]"
+            >
+                {content}
+            </a>
+        );
+    }
 
     return (
         <div className="group flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-600 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow-md dark:border-white/[0.06] dark:bg-white/[0.04] dark:text-gray-300 dark:hover:bg-white/[0.07]">
-            <NetworkIcon icon={icon} name={name} color={color} />
-
-            <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-gray-800 dark:text-gray-100">
-                    {name || "Red social"}
-                </p>
-
-                {value && (
-                    <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
-                        {value}
-                    </p>
-                )}
-            </div>
+            {content}
         </div>
     );
 }
 
-function NetworkIcon({
+function NetworkMiniIcon({
     icon,
     name,
     color,
@@ -321,23 +428,192 @@ function NetworkIcon({
     color: string;
 }) {
     if (!icon) {
-        return (
-            <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
-                style={{ backgroundColor: color }}
-            >
-                <Link2 size={16} />
-            </span>
-        );
+        return <Link2 size={16} style={{ color }} />;
     }
 
     return (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-100 bg-white shadow-sm dark:border-white/[0.08] dark:bg-white/[0.06]">
-            <img
-                src={icon}
-                alt={name || "Red social"}
-                className="h-4.5 w-4.5 object-contain"
-            />
-        </span>
+        <img
+            src={icon}
+            alt={name || "Red social"}
+            className="h-[18px] w-[18px] object-contain"
+        />
     );
+}
+
+function getQualities(data: PublicCardLike): QualityLike[] {
+    return (
+        data.qualities ||
+        data.card_qualities ||
+        data.cardQualities ||
+        data.characteristics ||
+        data.features ||
+        data.quality_items ||
+        []
+    );
+}
+
+function getDocuments(data: PublicCardLike): DocumentLike[] {
+    return (
+        data.documents ||
+        data.card_documents ||
+        data.cardDocuments ||
+        data.pdfs ||
+        data.files ||
+        data.attachments ||
+        []
+    );
+}
+
+function getNetworks(data: PublicCardLike): NetworkLike[] {
+    return (
+        data.networks ||
+        data.social_networks ||
+        data.socialNetworks ||
+        data.card_networks ||
+        data.cardNetworks ||
+        []
+    );
+}
+
+function getQualityName(quality: QualityLike) {
+    if (!quality) return "";
+
+    if (typeof quality === "string") return quality;
+
+    return (
+        quality.name ||
+        quality.title ||
+        quality.value ||
+        quality.quality ||
+        quality.description ||
+        ""
+    );
+}
+
+function getNetworkName(network: NetworkLike) {
+    return (
+        network.name ||
+        network.type?.name ||
+        network.social_network?.name ||
+        network.label ||
+        network.value ||
+        network.url ||
+        network.link ||
+        ""
+    );
+}
+
+function getNetworkValue(network: NetworkLike) {
+    return network.value || network.url || network.link || "";
+}
+
+function getNetworkIcon(network: NetworkLike) {
+    return (
+        network.icon_url ||
+        network.icon ||
+        network.image ||
+        network.type?.icon_url ||
+        network.type?.icon ||
+        network.social_network?.icon_url ||
+        network.social_network?.icon ||
+        ""
+    );
+}
+
+function getNetworkHref(network: NetworkLike) {
+    const value = getNetworkValue(network);
+    const type = network.type?.type?.toLowerCase();
+    const name = getNetworkName(network).toLowerCase();
+
+    if (!value) return "#";
+
+    if (type === "email" || name.includes("email") || name.includes("correo")) {
+        return `mailto:${value}`;
+    }
+
+    if (type === "phone" || type === "tel") {
+        const phone = value.replace(/\D/g, "");
+
+        if (name.includes("whatsapp")) {
+            return `https://wa.me/${phone}`;
+        }
+
+        return `tel:${phone}`;
+    }
+
+    if (name.includes("whatsapp")) {
+        const phone = value.replace(/\D/g, "");
+        return `https://wa.me/${phone}`;
+    }
+
+    if (value.startsWith("http://") || value.startsWith("https://")) {
+        return value;
+    }
+
+    return value;
+}
+
+function getDocumentName(document: DocumentLike, index: number) {
+    if (document instanceof File) {
+        return document.name;
+    }
+
+    if (typeof document === "string") {
+        return getNameFromPath(document) || `Documento ${index + 1}`;
+    }
+
+    if (document && typeof document === "object") {
+        return (
+            document.name ||
+            document.file_name ||
+            document.filename ||
+            document.document_name ||
+            document.original_name ||
+            document.originalName ||
+            document.title ||
+            document.document?.name ||
+            document.document?.file_name ||
+            getNameFromPath(document.url) ||
+            getNameFromPath(document.file_url) ||
+            getNameFromPath(document.document_url) ||
+            getNameFromPath(document.path) ||
+            getNameFromPath(document.document?.url) ||
+            getNameFromPath(document.document?.path) ||
+            `Documento ${index + 1}`
+        );
+    }
+
+    return `Documento ${index + 1}`;
+}
+
+function getDocumentUrl(document: DocumentLike) {
+    if (!document || document instanceof File) return "";
+
+    if (typeof document === "string") {
+        return document;
+    }
+
+    return (
+        document.url ||
+        document.file_url ||
+        document.document_url ||
+        document.path ||
+        document.document?.url ||
+        document.document?.document_url ||
+        document.document?.path ||
+        ""
+    );
+}
+
+function getNameFromPath(path?: string) {
+    if (!path) return "";
+
+    try {
+        const cleanPath = path.split("?")[0];
+        const name = cleanPath.split("/").pop();
+
+        return name ? decodeURIComponent(name) : "";
+    } catch {
+        return "";
+    }
 }

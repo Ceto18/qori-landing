@@ -62,7 +62,7 @@ export function PlanCard({ plan }: Props) {
       </div>
 
       <Link
-        href={`/checkout?plan=${plan.slug}`}
+        href={`https://admin.qoriid.com/signin`}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-lg group-hover:shadow-primary/50"
       >
         Comprar {plan.name}

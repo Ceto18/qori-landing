@@ -10,7 +10,37 @@ import CorporateTemplate from "./templates/CorporateTemplate";
 import MinimalTemplate from "./templates/MinimalTemplate";
 import PremiumTemplate from "./templates/PremiumTemplate";
 
-type PublicTemplateData = {
+type PublicTemplateQuality =
+    | string
+    | {
+          uuid?: string;
+          name: string;
+      };
+
+type PublicTemplateDocument = {
+    uuid?: string;
+    name: string;
+    document_url: string;
+};
+
+type PublicTemplateNetwork = {
+    uuid?: string;
+    value: string;
+    label?: string;
+    red_social?: string;
+    red_social_uuid?: string;
+    name?: string;
+    icon?: string | null;
+    icon_url?: string | null;
+    type?: {
+        uuid?: string;
+        name: string;
+        type?: string;
+        icon_url: string | null;
+    };
+};
+
+export type PublicTemplateData = {
     first_name: string;
     last_name: string;
     full_name: string;
@@ -29,48 +59,30 @@ type PublicTemplateData = {
     photo_perfil_url?: string | null;
     photo_banner_url?: string | null;
 
-    qualities: {
-        uuid?: string;
-        name: string;
-    }[];
-
-    documents: Array<File | null>;
-
-    networks: {
-        uuid: string;
-        value: string;
-        label: string;
-        red_social?: string;
-        red_social_uuid?: string;
-        name?: string;
-        icon?: string | null;
-        icon_url?: string | null;
-        type?: {
-            uuid: string;
-            name: string;
-            type?: string;
-            icon_url: string | null;
-        };
-    }[];
+    qualities: PublicTemplateQuality[];
+    documents: PublicTemplateDocument[];
+    networks: PublicTemplateNetwork[];
 };
 
 interface Props {
     card: PublicCard;
 }
 
-interface TemplateProps {
+type PublicTemplateProps = {
     data: PublicTemplateData;
-    profilePreview: string;
-    bannerPreview: string;
+    profilePreview?: string;
+    bannerPreview?: string;
     isPublicView?: boolean;
-}
+};
 
-const templateMap: Record<string, ComponentType<TemplateProps>> = {
-    "1": ClassicTemplate,
-    "2": ModernTemplate,
-    "3": CorporateTemplate,
-    "4": MinimalTemplate,
-    "5": PremiumTemplate,
+type PublicTemplateComponent = ComponentType<PublicTemplateProps>;
+
+const templateMap: Record<string, PublicTemplateComponent> = {
+    "1": ClassicTemplate as PublicTemplateComponent,
+    "2": ModernTemplate as PublicTemplateComponent,
+    "3": CorporateTemplate as PublicTemplateComponent,
+    "4": MinimalTemplate as PublicTemplateComponent,
+    "5": PremiumTemplate as PublicTemplateComponent,
 };
 
 const toTemplateData = (card: PublicCard): PublicTemplateData => {
@@ -97,7 +109,12 @@ const toTemplateData = (card: PublicCard): PublicTemplateData => {
 
         qualities: card.qualities ?? [],
 
-        documents: [],
+        documents:
+            card.documents?.map((document) => ({
+                uuid: document.uuid,
+                name: document.name ?? "Documento",
+                document_url: document.document_url ?? "",
+            })) ?? [],
 
         networks:
             card.networks?.map((network) => ({
@@ -126,8 +143,8 @@ export default function PublicCardRenderer({ card }: Props) {
             <section className="mx-auto flex w-full max-w-[520px] justify-center">
                 <SelectedTemplate
                     data={data}
-                    profilePreview={card.photo_perfil_url ?? ""}
-                    bannerPreview={card.photo_banner_url ?? ""}
+                    profilePreview=""
+                    bannerPreview=""
                     isPublicView
                 />
             </section>
