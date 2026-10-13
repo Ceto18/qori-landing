@@ -1,13 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import type { ReactNode } from "react";
+
 import {
     BadgeCheck,
+    Check,
+    Download,
     FileText,
     Link2,
+    Loader2,
     MapPin,
     WalletCards,
 } from "lucide-react";
+
+import { publicCardService } from "@/services/publicCardService";
 
 import type {
     CardDocument,
@@ -18,6 +25,8 @@ import type {
 
 interface Props {
     data: CardFormValues;
+    organizationSlug?: string;
+    cardSlug?: string;
     profilePreview?: string;
     bannerPreview?: string;
     isPublicView?: boolean;
@@ -25,9 +34,14 @@ interface Props {
 
 export default function MinimalTemplate({
     data,
+    organizationSlug = "",
+    cardSlug = "",
     profilePreview = "",
     bannerPreview = "",
 }: Props) {
+    const [walletLoading, setWalletLoading] = useState(false);
+    const [contactSaved, setContactSaved] = useState(false);
+
     const primaryColor = data.primary_color || "#111827";
 
     const profileImage = profilePreview || data.photo_perfil_url || "";
@@ -48,13 +62,48 @@ export default function MinimalTemplate({
         const value = getNetworkValue(network);
         const icon = getNetworkIcon(network);
 
-        return (
-            network?.uuid?.trim?.() ||
-            name.trim() ||
-            value.trim() ||
-            icon.trim()
-        );
+        return network?.uuid?.trim?.() || name.trim() || value.trim() || icon.trim();
     });
+
+    const handleSaveContact = () => {
+        try {
+            downloadVCard(data, networks);
+
+            setContactSaved(true);
+
+            setTimeout(() => {
+                setContactSaved(false);
+            }, 2000);
+        } catch (error) {
+            console.error("Error al guardar el contacto:", error);
+        }
+    };
+
+    const handleGoogleWallet = async () => {
+        if (!organizationSlug || !cardSlug || walletLoading) return;
+
+        try {
+            setWalletLoading(true);
+
+            const response = await publicCardService.getWallet(
+                organizationSlug,
+                cardSlug
+            );
+
+            const url = response?.data?.url;
+
+            if (!url) {
+                console.error("No se recibió una URL de Google Wallet.");
+                return;
+            }
+
+            window.location.href = url;
+        } catch (error) {
+            console.error("Error al generar Google Wallet:", error);
+        } finally {
+            setWalletLoading(false);
+        }
+    };
 
     return (
         <div className="mx-auto w-full overflow-hidden rounded-[2rem] border border-gray-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-white/[0.08] dark:bg-gray-950">
@@ -99,8 +148,7 @@ export default function MinimalTemplate({
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
-                                    data.full_name?.charAt(0)?.toUpperCase() ||
-                                    "?"
+                                    data.full_name?.charAt(0)?.toUpperCase() || "?"
                                 )}
                             </div>
                         </div>
@@ -135,40 +183,31 @@ export default function MinimalTemplate({
 
                     {filledNetworks.length > 0 && (
                         <div className="mt-5 flex max-w-full flex-wrap justify-center gap-2">
-                            {filledNetworks.map((network, index) => (
-                                <a
-                                    key={`network-${
-                                        network.uuid ||
-                                        getNetworkName(network) ||
-                                        index
-                                    }`}
-                                    href={getNetworkHref(network)}
-                                    target={
-                                        getNetworkHref(network).startsWith(
-                                            "http"
-                                        )
-                                            ? "_blank"
-                                            : undefined
-                                    }
-                                    rel={
-                                        getNetworkHref(network).startsWith(
-                                            "http"
-                                        )
-                                            ? "noopener noreferrer"
-                                            : undefined
-                                    }
-                                    title={
-                                        getNetworkName(network) || "Red social"
-                                    }
-                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-sm dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-gray-300"
-                                >
-                                    <MinimalNetworkIcon
-                                        icon={getNetworkIcon(network)}
-                                        name={getNetworkName(network)}
-                                        color={primaryColor}
-                                    />
-                                </a>
-                            ))}
+                            {filledNetworks.map((network, index) => {
+                                const href = getNetworkHref(network);
+
+                                return (
+                                    <a
+                                        key={`network-${network.uuid || getNetworkName(network) || index
+                                            }`}
+                                        href={href}
+                                        target={href.startsWith("http") ? "_blank" : undefined}
+                                        rel={
+                                            href.startsWith("http")
+                                                ? "noopener noreferrer"
+                                                : undefined
+                                        }
+                                        title={getNetworkName(network) || "Red social"}
+                                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-sm dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-gray-300"
+                                    >
+                                        <MinimalNetworkIcon
+                                            icon={getNetworkIcon(network)}
+                                            name={getNetworkName(network)}
+                                            color={primaryColor}
+                                        />
+                                    </a>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -200,9 +239,7 @@ export default function MinimalTemplate({
                             <div className="flex flex-wrap justify-center gap-2">
                                 {filledQualities.map((quality, index) => (
                                     <span
-                                        key={`${getQualityName(
-                                            quality
-                                        )}-${index}`}
+                                        key={`${getQualityName(quality)}-${index}`}
                                         className="max-w-full break-words rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-gray-300"
                                     >
                                         {getQualityName(quality)}
@@ -234,24 +271,46 @@ export default function MinimalTemplate({
                 <div className="mt-6 space-y-3">
                     <button
                         type="button"
-                        className="w-full rounded-2xl px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                        onClick={handleSaveContact}
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
                         style={{
                             backgroundColor: primaryColor,
                             boxShadow: `0 12px 26px ${primaryColor}30`,
                         }}
                     >
-                        Guardar contacto
+                        {contactSaved ? (
+                            <>
+                                <Check size={18} />
+                                Contacto guardado
+                            </>
+                        ) : (
+                            <>
+                                <Download size={18} />
+                                Guardar contacto
+                            </>
+                        )}
                     </button>
 
                     <button
                         type="button"
-                        className="flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-gray-950 px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-black hover:shadow-lg active:translate-y-0 dark:border-white/[0.08] dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100"
+                        onClick={handleGoogleWallet}
+                        disabled={walletLoading || !organizationSlug || !cardSlug}
+                        className="flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-gray-950 px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-black hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/[0.08] dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100"
                     >
-                        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-gray-950 dark:bg-gray-950 dark:text-white">
-                            <WalletCards size={15} />
-                        </span>
+                        {walletLoading ? (
+                            <>
+                                <Loader2 size={17} className="animate-spin" />
+                                Generando...
+                            </>
+                        ) : (
+                            <>
+                                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-gray-950 dark:bg-gray-950 dark:text-white">
+                                    <WalletCards size={15} />
+                                </span>
 
-                        Agregar a Google Wallet
+                                Agregar a Google Wallet
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
@@ -378,7 +437,6 @@ function MinimalNetworkIcon({
 
 function getQualityName(quality: CardQuality) {
     if (!quality) return "";
-
     if (typeof quality === "string") return quality;
 
     return quality.name || "";
@@ -399,7 +457,12 @@ function getNetworkValue(network: CardNetwork) {
 }
 
 function getNetworkIcon(network: CardNetwork) {
-    return network.icon_url || network.icon || network.type?.icon_url || "";
+    return (
+        network.icon_url ||
+        network.icon ||
+        network.type?.icon_url ||
+        ""
+    );
 }
 
 function getNetworkHref(network: CardNetwork) {
@@ -409,7 +472,11 @@ function getNetworkHref(network: CardNetwork) {
 
     if (!value) return "#";
 
-    if (type === "email" || name.includes("email") || name.includes("correo")) {
+    if (
+        type === "email" ||
+        name.includes("email") ||
+        name.includes("correo")
+    ) {
         return `mailto:${value}`;
     }
 
@@ -428,7 +495,10 @@ function getNetworkHref(network: CardNetwork) {
         return `https://wa.me/${phone}`;
     }
 
-    if (value.startsWith("http://") || value.startsWith("https://")) {
+    if (
+        value.startsWith("http://") ||
+        value.startsWith("https://")
+    ) {
         return value;
     }
 
@@ -498,4 +568,162 @@ function getNameFromPath(path?: string) {
     } catch {
         return "";
     }
+}
+
+function downloadVCard(
+    data: CardFormValues,
+    networks: CardNetwork[]
+) {
+    const fullName =
+        data.full_name ||
+        `${data.first_name || ""} ${data.last_name || ""}`.trim() ||
+        "Contacto";
+
+    const phone = getContactPhone(networks);
+    const email = getContactEmail(networks);
+    const website = getContactWebsite(networks);
+
+    const lines = [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        `FN:${escapeVCardValue(fullName)}`,
+        buildVCardName(data.first_name, data.last_name),
+
+        data.institution
+            ? `ORG:${escapeVCardValue(data.institution)}`
+            : "",
+
+        data.position
+            ? `TITLE:${escapeVCardValue(data.position)}`
+            : "",
+
+        phone
+            ? `TEL;TYPE=CELL:${escapeVCardValue(phone)}`
+            : "",
+
+        email
+            ? `EMAIL:${escapeVCardValue(email)}`
+            : "",
+
+        website
+            ? `URL:${escapeVCardValue(website)}`
+            : "",
+
+        data.ubication
+            ? `ADR;TYPE=WORK:;;${escapeVCardValue(data.ubication)};;;;`
+            : "",
+
+        data.description
+            ? `NOTE:${escapeVCardValue(data.description)}`
+            : "",
+
+        "END:VCARD",
+    ].filter(Boolean);
+
+    const content = lines.join("\r\n");
+
+    const blob = new Blob([content], {
+        type: "text/vcard;charset=utf-8",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `${sanitizeFileName(fullName)}.vcf`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+}
+
+function buildVCardName(
+    firstName?: string | null,
+    lastName?: string | null
+) {
+    return `N:${escapeVCardValue(lastName || "")};${escapeVCardValue(
+        firstName || ""
+    )};;;`;
+}
+
+function getContactPhone(networks: CardNetwork[]) {
+    const network = networks.find((item) => {
+        const type = item.type?.type?.toLowerCase() || "";
+        const name = getNetworkName(item).toLowerCase();
+
+        return (
+            type === "phone" ||
+            type === "tel" ||
+            name.includes("teléfono") ||
+            name.includes("telefono") ||
+            name.includes("celular") ||
+            name.includes("whatsapp")
+        );
+    });
+
+    return network ? getNetworkValue(network) : "";
+}
+
+function getContactEmail(networks: CardNetwork[]) {
+    const network = networks.find((item) => {
+        const type = item.type?.type?.toLowerCase() || "";
+        const name = getNetworkName(item).toLowerCase();
+
+        return (
+            type === "email" ||
+            name.includes("email") ||
+            name.includes("correo")
+        );
+    });
+
+    return network ? getNetworkValue(network) : "";
+}
+
+function getContactWebsite(networks: CardNetwork[]) {
+    const network = networks.find((item) => {
+        const type = item.type?.type?.toLowerCase() || "";
+        const name = getNetworkName(item).toLowerCase();
+
+        return (
+            type === "url" ||
+            type === "website" ||
+            type === "web" ||
+            name.includes("web") ||
+            name.includes("sitio")
+        );
+    });
+
+    if (!network) return "";
+
+    const value = getNetworkValue(network);
+
+    if (!value) return "";
+
+    if (
+        value.startsWith("http://") ||
+        value.startsWith("https://")
+    ) {
+        return value;
+    }
+
+    return `https://${value}`;
+}
+
+function escapeVCardValue(value: string) {
+    return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/\n/g, "\\n")
+        .replace(/;/g, "\\;")
+        .replace(/,/g, "\\,");
+}
+
+function sanitizeFileName(value: string) {
+    return (
+        value
+            .trim()
+            .replace(/[<>:"/\\|?*]+/g, "")
+            .replace(/\s+/g, "_") || "contacto"
+    );
 }

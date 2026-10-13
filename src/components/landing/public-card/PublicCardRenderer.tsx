@@ -13,9 +13,9 @@ import PremiumTemplate from "./templates/PremiumTemplate";
 type PublicTemplateQuality =
     | string
     | {
-          uuid?: string;
-          name: string;
-      };
+        uuid?: string;
+        name: string;
+    };
 
 type PublicTemplateDocument = {
     uuid?: string;
@@ -66,10 +66,14 @@ export type PublicTemplateData = {
 
 interface Props {
     card: PublicCard;
+    organizationSlug: string;
+    cardSlug: string;
 }
 
 type PublicTemplateProps = {
     data: PublicTemplateData;
+    organizationSlug?: string;
+    cardSlug?: string;
     profilePreview?: string;
     bannerPreview?: string;
     isPublicView?: boolean;
@@ -85,55 +89,56 @@ const templateMap: Record<string, PublicTemplateComponent> = {
     "5": PremiumTemplate as PublicTemplateComponent,
 };
 
-const toTemplateData = (card: PublicCard): PublicTemplateData => {
-    return {
-        first_name: card.first_name ?? "",
-        last_name: card.last_name ?? "",
-        full_name:
-            card.full_name ??
-            `${card.first_name ?? ""} ${card.last_name ?? ""}`.trim(),
+const toTemplateData = (card: PublicCard): PublicTemplateData => ({
+    first_name: card.first_name ?? "",
+    last_name: card.last_name ?? "",
+    full_name:
+        card.full_name ??
+        `${card.first_name ?? ""} ${card.last_name ?? ""}`.trim(),
 
-        position: card.position ?? "",
-        institution: card.institution ?? "",
-        profession: card.profession ?? "",
-        ubication: card.ubication ?? "",
-        description: card.description ?? "",
+    position: card.position ?? "",
+    institution: card.institution ?? "",
+    profession: card.profession ?? "",
+    ubication: card.ubication ?? "",
+    description: card.description ?? "",
 
-        design_id: String(card.design_id ?? "1"),
+    design_id: String(card.design_id ?? "1"),
 
-        primary_color: card.primary_color ?? "#2563eb",
-        secondary_color: card.secondary_color ?? "#111827",
+    primary_color: card.primary_color ?? "#2563eb",
+    secondary_color: card.secondary_color ?? "#111827",
 
-        photo_perfil_url: card.photo_perfil_url ?? null,
-        photo_banner_url: card.photo_banner_url ?? null,
+    photo_perfil_url: card.photo_perfil_url ?? null,
+    photo_banner_url: card.photo_banner_url ?? null,
 
-        qualities: card.qualities ?? [],
+    qualities: card.qualities ?? [],
 
-        documents:
-            card.documents?.map((document) => ({
-                uuid: document.uuid,
-                name: document.name ?? "Documento",
-                document_url: document.document_url ?? "",
-            })) ?? [],
+    documents:
+        card.documents?.map((document) => ({
+            uuid: document.uuid,
+            name: document.name ?? "Documento",
+            document_url: document.document_url ?? "",
+        })) ?? [],
 
-        networks:
-            card.networks?.map((network) => ({
-                uuid: network.uuid,
-                value: network.value ?? "",
-                label: network.label ?? "",
-                red_social: network.type?.uuid,
-                red_social_uuid: network.type?.uuid,
-                name: network.type?.name,
-                icon: network.type?.icon_url,
-                icon_url: network.type?.icon_url,
-                type: network.type,
-            })) ?? [],
-    };
-};
+    networks:
+        card.networks?.map((network) => ({
+            uuid: network.uuid,
+            value: network.value ?? "",
+            label: network.label ?? "",
+            red_social: network.type?.uuid,
+            red_social_uuid: network.type?.uuid,
+            name: network.type?.name,
+            icon: network.type?.icon_url,
+            icon_url: network.type?.icon_url,
+            type: network.type,
+        })) ?? [],
+});
 
-export default function PublicCardRenderer({ card }: Props) {
+export default function PublicCardRenderer({
+    card,
+    organizationSlug,
+    cardSlug,
+}: Props) {
     const designId = String(card.design_id ?? "1");
-
     const SelectedTemplate = templateMap[designId] ?? ClassicTemplate;
 
     const data = toTemplateData(card);
@@ -143,6 +148,8 @@ export default function PublicCardRenderer({ card }: Props) {
             <section className="mx-auto flex w-full max-w-[520px] justify-center">
                 <SelectedTemplate
                     data={data}
+                    organizationSlug={organizationSlug}
+                    cardSlug={cardSlug}
                     profilePreview=""
                     bannerPreview=""
                     isPublicView

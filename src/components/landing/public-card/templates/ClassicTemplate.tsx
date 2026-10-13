@@ -1,14 +1,28 @@
 "use client";
 
+import { useState } from "react";
 import type { ReactNode } from "react";
-import { BadgeCheck, FileText, Link2, MapPin } from "lucide-react";
 
+import {
+    BadgeCheck,
+    Check,
+    Download,
+    FileText,
+    Link2,
+    Loader2,
+    MapPin,
+    WalletCards,
+} from "lucide-react";
+
+import { publicCardService } from "@/services/publicCardService";
 import { CardFormValues } from "../types";
 
 type PublicCardLike = CardFormValues & Record<string, any>;
 
 interface Props {
     data: PublicCardLike;
+    organizationSlug?: string;
+    cardSlug?: string;
     profilePreview?: string;
     bannerPreview?: string;
 }
@@ -17,36 +31,36 @@ type DocumentLike =
     | File
     | string
     | {
-          name?: string;
-          file_name?: string;
-          filename?: string;
-          document_name?: string;
-          original_name?: string;
-          originalName?: string;
-          title?: string;
-          url?: string;
-          file_url?: string;
-          document_url?: string;
-          path?: string;
-          document?: {
-              name?: string;
-              file_name?: string;
-              url?: string;
-              path?: string;
-              document_url?: string;
-          };
-      }
+        name?: string;
+        file_name?: string;
+        filename?: string;
+        document_name?: string;
+        original_name?: string;
+        originalName?: string;
+        title?: string;
+        url?: string;
+        file_url?: string;
+        document_url?: string;
+        path?: string;
+        document?: {
+            name?: string;
+            file_name?: string;
+            url?: string;
+            path?: string;
+            document_url?: string;
+        };
+    }
     | null;
 
 type QualityLike =
     | string
     | {
-          name?: string;
-          title?: string;
-          value?: string;
-          quality?: string;
-          description?: string;
-      }
+        name?: string;
+        title?: string;
+        value?: string;
+        quality?: string;
+        description?: string;
+    }
     | null;
 
 type NetworkLike = {
@@ -74,9 +88,14 @@ type NetworkLike = {
 
 export default function ClassicTemplate({
     data,
+    organizationSlug = "",
+    cardSlug = "",
     profilePreview = "",
     bannerPreview = "",
 }: Props) {
+    const [walletLoading, setWalletLoading] = useState(false);
+    const [contactSaved, setContactSaved] = useState(false);
+
     const primaryColor = data.primary_color || "#2563eb";
 
     const profileImage =
@@ -111,13 +130,48 @@ export default function ClassicTemplate({
         const value = getNetworkValue(network);
         const icon = getNetworkIcon(network);
 
-        return (
-            network?.uuid?.trim?.() ||
-            name.trim() ||
-            value.trim() ||
-            icon.trim()
-        );
+        return network?.uuid?.trim?.() || name.trim() || value.trim() || icon.trim();
     });
+
+    const handleSaveContact = () => {
+        try {
+            downloadVCard(data, networks);
+
+            setContactSaved(true);
+
+            setTimeout(() => {
+                setContactSaved(false);
+            }, 2000);
+        } catch (error) {
+            console.error("Error al guardar el contacto:", error);
+        }
+    };
+
+    const handleGoogleWallet = async () => {
+        if (!organizationSlug || !cardSlug || walletLoading) return;
+
+        try {
+            setWalletLoading(true);
+
+            const response = await publicCardService.getWallet(
+                organizationSlug,
+                cardSlug
+            );
+
+            const url = response?.data?.url;
+
+            if (!url) {
+                console.error("No se recibió una URL de Google Wallet.");
+                return;
+            }
+
+            window.location.href = url;
+        } catch (error) {
+            console.error("Error al generar Google Wallet:", error);
+        } finally {
+            setWalletLoading(false);
+        }
+    };
 
     return (
         <div className="mx-auto w-full max-w-[520px] overflow-hidden rounded-[2rem] border border-gray-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.12)] dark:border-white/[0.08] dark:bg-gray-950">
@@ -126,9 +180,7 @@ export default function ClassicTemplate({
                     className="relative h-36 overflow-hidden bg-cover bg-center"
                     style={{
                         backgroundColor: primaryColor,
-                        backgroundImage: bannerImage
-                            ? `url(${bannerImage})`
-                            : undefined,
+                        backgroundImage: bannerImage ? `url(${bannerImage})` : undefined,
                     }}
                 >
                     <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/45" />
@@ -164,8 +216,7 @@ export default function ClassicTemplate({
                                     className="flex h-full w-full items-center justify-center"
                                     style={{ backgroundColor: primaryColor }}
                                 >
-                                    {data.full_name?.charAt(0)?.toUpperCase() ||
-                                        "?"}
+                                    {data.full_name?.charAt(0)?.toUpperCase() || "?"}
                                 </span>
                             )}
                         </div>
@@ -206,29 +257,31 @@ export default function ClassicTemplate({
                         {filledNetworks.length > 0 && (
                             <div className="mt-4 flex justify-center">
                                 <div className="flex max-w-full flex-wrap justify-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 py-2 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.04]">
-                                    {filledNetworks.map((network, index) => (
-                                        <a
-                                            key={`network-${
-                                                network.uuid ||
-                                                getNetworkName(network) ||
-                                                index
-                                            }`}
-                                            href={getNetworkHref(network)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            title={
-                                                getNetworkName(network) ||
-                                                "Red social"
-                                            }
-                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-gray-600 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.08] dark:text-white"
-                                        >
-                                            <NetworkMiniIcon
-                                                icon={getNetworkIcon(network)}
-                                                name={getNetworkName(network)}
-                                                color={primaryColor}
-                                            />
-                                        </a>
-                                    ))}
+                                    {filledNetworks.map((network, index) => {
+                                        const href = getNetworkHref(network);
+
+                                        return (
+                                            <a
+                                                key={`network-${network.uuid || getNetworkName(network) || index
+                                                    }`}
+                                                href={href}
+                                                target={href.startsWith("http") ? "_blank" : undefined}
+                                                rel={
+                                                    href.startsWith("http")
+                                                        ? "noopener noreferrer"
+                                                        : undefined
+                                                }
+                                                title={getNetworkName(network) || "Red social"}
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-gray-600 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.08] dark:text-white"
+                                            >
+                                                <NetworkMiniIcon
+                                                    icon={getNetworkIcon(network)}
+                                                    name={getNetworkName(network)}
+                                                    color={primaryColor}
+                                                />
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -261,9 +314,7 @@ export default function ClassicTemplate({
                                 <div className="flex flex-wrap gap-2">
                                     {filledQualities.map((quality, index) => (
                                         <span
-                                            key={`${getQualityName(
-                                                quality
-                                            )}-${index}`}
+                                            key={`${getQualityName(quality)}-${index}`}
                                             className="max-w-full break-words rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-gray-300"
                                         >
                                             {getQualityName(quality)}
@@ -295,24 +346,43 @@ export default function ClassicTemplate({
                     <div className="mt-5 space-y-3">
                         <button
                             type="button"
-                            className="w-full rounded-2xl px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+                            onClick={handleSaveContact}
+                            className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
                             style={{
                                 backgroundColor: primaryColor,
                                 boxShadow: `0 14px 30px ${primaryColor}40`,
                             }}
                         >
-                            Guardar contacto
+                            {contactSaved ? (
+                                <>
+                                    <Check size={18} />
+                                    Contacto guardado
+                                </>
+                            ) : (
+                                <>
+                                    <Download size={18} />
+                                    Guardar contacto
+                                </>
+                            )}
                         </button>
 
                         <button
                             type="button"
-                            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-gray-950 px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-black hover:shadow-xl active:translate-y-0 dark:border-white/[0.08] dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100"
+                            onClick={handleGoogleWallet}
+                            disabled={walletLoading || !organizationSlug || !cardSlug}
+                            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-gray-950 px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-black hover:shadow-xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/[0.08] dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100"
                         >
-                            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[13px] font-black text-gray-950 dark:bg-gray-950 dark:text-white">
-                                G
-                            </span>
-
-                            Agregar a Google Wallet
+                            {walletLoading ? (
+                                <>
+                                    <Loader2 size={19} className="animate-spin" />
+                                    Generando...
+                                </>
+                            ) : (
+                                <>
+                                    <WalletCards size={19} />
+                                    Agregar a Google Wallet
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -477,7 +547,6 @@ function getNetworks(data: PublicCardLike): NetworkLike[] {
 
 function getQualityName(quality: QualityLike) {
     if (!quality) return "";
-
     if (typeof quality === "string") return quality;
 
     return (
@@ -527,7 +596,11 @@ function getNetworkHref(network: NetworkLike) {
 
     if (!value) return "#";
 
-    if (type === "email" || name.includes("email") || name.includes("correo")) {
+    if (
+        type === "email" ||
+        name.includes("email") ||
+        name.includes("correo")
+    ) {
         return `mailto:${value}`;
     }
 
@@ -546,7 +619,10 @@ function getNetworkHref(network: NetworkLike) {
         return `https://wa.me/${phone}`;
     }
 
-    if (value.startsWith("http://") || value.startsWith("https://")) {
+    if (
+        value.startsWith("http://") ||
+        value.startsWith("https://")
+    ) {
         return value;
     }
 
@@ -616,4 +692,162 @@ function getNameFromPath(path?: string) {
     } catch {
         return "";
     }
+}
+
+function downloadVCard(
+    data: PublicCardLike,
+    networks: NetworkLike[]
+) {
+    const fullName =
+        data.full_name ||
+        `${data.first_name || ""} ${data.last_name || ""}`.trim() ||
+        "Contacto";
+
+    const phone = getContactPhone(networks);
+    const email = getContactEmail(networks);
+    const website = getContactWebsite(networks);
+
+    const lines = [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        `FN:${escapeVCardValue(fullName)}`,
+        buildVCardName(data.first_name, data.last_name),
+
+        data.institution
+            ? `ORG:${escapeVCardValue(data.institution)}`
+            : "",
+
+        data.position
+            ? `TITLE:${escapeVCardValue(data.position)}`
+            : "",
+
+        phone
+            ? `TEL;TYPE=CELL:${escapeVCardValue(phone)}`
+            : "",
+
+        email
+            ? `EMAIL:${escapeVCardValue(email)}`
+            : "",
+
+        website
+            ? `URL:${escapeVCardValue(website)}`
+            : "",
+
+        data.ubication
+            ? `ADR;TYPE=WORK:;;${escapeVCardValue(data.ubication)};;;;`
+            : "",
+
+        data.description
+            ? `NOTE:${escapeVCardValue(data.description)}`
+            : "",
+
+        "END:VCARD",
+    ].filter(Boolean);
+
+    const content = lines.join("\r\n");
+
+    const blob = new Blob([content], {
+        type: "text/vcard;charset=utf-8",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `${sanitizeFileName(fullName)}.vcf`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+}
+
+function buildVCardName(
+    firstName?: string | null,
+    lastName?: string | null
+) {
+    return `N:${escapeVCardValue(lastName || "")};${escapeVCardValue(
+        firstName || ""
+    )};;;`;
+}
+
+function getContactPhone(networks: NetworkLike[]) {
+    const network = networks.find((item) => {
+        const type = item.type?.type?.toLowerCase() || "";
+        const name = getNetworkName(item).toLowerCase();
+
+        return (
+            type === "phone" ||
+            type === "tel" ||
+            name.includes("teléfono") ||
+            name.includes("telefono") ||
+            name.includes("celular") ||
+            name.includes("whatsapp")
+        );
+    });
+
+    return network ? getNetworkValue(network) : "";
+}
+
+function getContactEmail(networks: NetworkLike[]) {
+    const network = networks.find((item) => {
+        const type = item.type?.type?.toLowerCase() || "";
+        const name = getNetworkName(item).toLowerCase();
+
+        return (
+            type === "email" ||
+            name.includes("email") ||
+            name.includes("correo")
+        );
+    });
+
+    return network ? getNetworkValue(network) : "";
+}
+
+function getContactWebsite(networks: NetworkLike[]) {
+    const network = networks.find((item) => {
+        const type = item.type?.type?.toLowerCase() || "";
+        const name = getNetworkName(item).toLowerCase();
+
+        return (
+            type === "url" ||
+            type === "website" ||
+            type === "web" ||
+            name.includes("web") ||
+            name.includes("sitio")
+        );
+    });
+
+    if (!network) return "";
+
+    const value = getNetworkValue(network);
+
+    if (!value) return "";
+
+    if (
+        value.startsWith("http://") ||
+        value.startsWith("https://")
+    ) {
+        return value;
+    }
+
+    return `https://${value}`;
+}
+
+function escapeVCardValue(value: string) {
+    return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/\n/g, "\\n")
+        .replace(/;/g, "\\;")
+        .replace(/,/g, "\\,");
+}
+
+function sanitizeFileName(value: string) {
+    return (
+        value
+            .trim()
+            .replace(/[<>:"/\\|?*]+/g, "")
+            .replace(/\s+/g, "_") || "contacto"
+    );
 }

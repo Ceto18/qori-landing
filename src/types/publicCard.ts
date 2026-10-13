@@ -61,3 +61,13 @@ export type PublicCardResponse = {
   message: string;
   data: PublicCard;
 };
+
+export type PublicCardWallet = {
+  url: string;
+};
+
+export type PublicCardWalletResponse = {
+  success: boolean;
+  message: string;
+  data: PublicCardWallet;
+};
