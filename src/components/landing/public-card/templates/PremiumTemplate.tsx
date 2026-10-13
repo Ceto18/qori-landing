@@ -94,7 +94,7 @@ export default function PremiumTemplate({
                 cardSlug
             );
 
-            const url = response?.data?.url;
+            const url = response.data;
 
             if (!url) {
                 console.error("No se recibió una URL de Google Wallet.");
