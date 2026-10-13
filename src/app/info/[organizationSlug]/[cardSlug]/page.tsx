@@ -2,8 +2,8 @@
 
 import { notFound } from "next/navigation";
 
-import { publicCardService } from "@/services/publicCardService";
 import PublicCardRenderer from "@/components/landing/public-card/PublicCardRenderer";
+import { publicCardService } from "@/services/publicCardService";
 
 type Props = {
   params: Promise<{
@@ -32,5 +32,11 @@ export default async function PublicCardPage({ params }: Props) {
     notFound();
   }
 
-  return <PublicCardRenderer card={card} />;
+  return (
+    <PublicCardRenderer
+      card={card}
+      organizationSlug={organizationSlug}
+      cardSlug={cardSlug}
+    />
+  );
 }
