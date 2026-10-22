@@ -88,7 +88,7 @@ export function VCardPreview() {
         <ContactItem
           icon={Globe}
           label="Web"
-          value="www.alejandrotorres.pe"
+          value="www.alejandroejemplo.pe"
         />
       </div>
 
