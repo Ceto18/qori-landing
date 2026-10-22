@@ -70,7 +70,7 @@ export function VCardPreview() {
         <ContactItem
           icon={LinkIcon}
           label="LinkedIn"
-          value="linkedin.com/in/alejandro-torres"
+          value="linkedin.com/in/alejandro-ejemplo"
         />
 
         <ContactItem
