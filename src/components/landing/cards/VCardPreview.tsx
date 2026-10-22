@@ -5,6 +5,7 @@ import {
   Link as LinkIcon,
   Mail,
   MessageCircle,
+  UserRound,
 } from "lucide-react";
 
 import { ContactItem } from "./ContactItem";
@@ -29,22 +30,22 @@ export function VCardPreview() {
 
       <div className="px-6 -mt-16 mb-4 relative z-10 flex justify-center">
         <div className="w-32 h-32 rounded-full border-4 border-background bg-gradient-to-br from-primary/40 to-primary/20 flex items-center justify-center shadow-lg">
-          <span className="text-5xl">👤</span>
+          <UserRound className="w-14 h-14 text-primary" strokeWidth={1.5} />
         </div>
       </div>
 
       <div className="px-6 space-y-1 text-center mb-6">
         <h2 className="text-2xl font-bold">
-          Alejandro Torres
+          Usuario Demo
         </h2>
 
         <p className="text-primary font-semibold">
-          Consultor de Tecnología
+          Profesional Digital
         </p>
 
         <p className="text-sm text-muted-foreground">
-          Transformando ideas en soluciones digitales y conectando
-          oportunidades profesionales.
+          Comparte tu información profesional, redes sociales y medios de
+          contacto desde una sola tarjeta digital.
         </p>
       </div>
 
@@ -70,25 +71,25 @@ export function VCardPreview() {
         <ContactItem
           icon={LinkIcon}
           label="LinkedIn"
-          value="linkedin.com/in/alejandro-ejemplo"
+          value="linkedin.com/in/usuario-demo"
         />
 
         <ContactItem
           icon={MessageCircle}
           label="WhatsApp"
-          value="+51 999 888 777"
+          value="+51 900 000 000"
         />
 
         <ContactItem
           icon={Mail}
           label="Email"
-          value="alejandro@ejemplo.com"
+          value="contacto@ejemplo.com"
         />
 
         <ContactItem
           icon={Globe}
           label="Web"
-          value="www.alejandroejemplo.pe"
+          value="www.ejemplo.com"
         />
       </div>
 
