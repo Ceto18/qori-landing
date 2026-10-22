@@ -7,13 +7,11 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-import { BUSINESS_INFO } from "@/constants/business";
-
 import { ContactItem } from "./ContactItem";
 
 export function VCardPreview() {
   const handleDownloadContact = () => {
-    console.log("Downloading contact...");
+    console.log("Downloading demo contact...");
   };
 
   return (
@@ -36,30 +34,35 @@ export function VCardPreview() {
       </div>
 
       <div className="px-6 space-y-1 text-center mb-6">
-        <h2 className="text-2xl font-bold">Qori Demo</h2>
+        <h2 className="text-2xl font-bold">
+          Alejandro Torres
+        </h2>
 
         <p className="text-primary font-semibold">
-          Profesional Digital | Qori ID
+          Consultor de Tecnología
         </p>
 
         <p className="text-sm text-muted-foreground">
-          Tarjeta digital para compartir información profesional, enlaces,
-          contacto y redes sociales.
+          Transformando ideas en soluciones digitales y conectando
+          oportunidades profesionales.
         </p>
       </div>
 
       <div className="px-6 mb-6">
         <div className="flex flex-wrap gap-2 justify-center">
-          {["tarjeta digital", "perfil profesional", "QR", "contacto rápido"].map(
-            (skill) => (
-              <span
-                key={skill}
-                className="text-xs bg-primary/20 text-primary px-3 py-1 rounded-full border border-primary/30"
-              >
-                {skill}
-              </span>
-            ),
-          )}
+          {[
+            "Tecnología",
+            "Innovación",
+            "Consultoría",
+            "Networking",
+          ].map((skill) => (
+            <span
+              key={skill}
+              className="text-xs bg-primary/20 text-primary px-3 py-1 rounded-full border border-primary/30"
+            >
+              {skill}
+            </span>
+          ))}
         </div>
       </div>
 
@@ -67,18 +70,26 @@ export function VCardPreview() {
         <ContactItem
           icon={LinkIcon}
           label="LinkedIn"
-          value="linkedin.com/in/usuario-demo"
+          value="linkedin.com/in/alejandro-torres"
         />
 
         <ContactItem
           icon={MessageCircle}
           label="WhatsApp"
-          value={BUSINESS_INFO.whatsapp}
+          value="+51 999 888 777"
         />
 
-        <ContactItem icon={Mail} label="Email" value={BUSINESS_INFO.email} />
+        <ContactItem
+          icon={Mail}
+          label="Email"
+          value="alejandro@ejemplo.com"
+        />
 
-        <ContactItem icon={Globe} label="Web" value={BUSINESS_INFO.website} />
+        <ContactItem
+          icon={Globe}
+          label="Web"
+          value="www.alejandrotorres.pe"
+        />
       </div>
 
       <div className="px-6 pb-6">
