@@ -22,7 +22,7 @@ export function FinalCTASection() {
           </p>
 
           <a
-            href="#checkout"
+            href="https://admin.qoriid.com/signin"
             className="group px-10 py-4 bg-primary text-primary-foreground text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] inline-flex items-center gap-3 mb-6"
           >
             Comprar ahora

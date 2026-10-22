@@ -41,7 +41,7 @@ export function HeroSection() {
             </a>
 
             <a
-              href="#checkout"
+              href="https://admin.qoriid.com/signin"
               className="px-8 py-4 border border-primary text-primary rounded-lg hover:bg-primary/10 transition-all font-semibold text-center"
             >
               Comprar ahora
