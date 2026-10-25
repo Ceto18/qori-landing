@@ -20,7 +20,7 @@ export function LandingNavbar() {
             Planes
           </a>
 
-          <a href="#checkout" className="text-sm hover:text-primary transition-colors">
+          <a href="https://admin.qoriid.com/signin" className="text-sm hover:text-primary transition-colors">
             Comprar
           </a>
 
